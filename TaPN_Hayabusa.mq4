@@ -8,14 +8,14 @@ input int excludeEndTime = 2300;
 input double maxAcceptedSpread = 0.3;
 
 // ATR threshold for trading
-input double ATRThreshold = 1.7;
+input double ATRThreshold = 1.6;
 
 // Processing variables
 double firstBuyEntry = 0.0;
 double firstSellEntry = 0.0;
 
 // EA Common value
-int fibonancies[] = {1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144};
+int fibonancies[] = {1, 2, 3, 5, 8, 13, 21, 34, 55, 89};
 
 // Distances and lots
 double DCA_Distances_Base = 0.0;
@@ -28,9 +28,8 @@ input double DCA_Distances_6 = 3.5;
 input double DCA_Distances_7 = 4.2;
 input double DCA_Distances_8 = 5.0;
 input double DCA_Distances_9 = 6.0;
-input double DCA_Distances_10 = 9.0;
-double DCA_Distances[11];
-double DCA_Lots[11];
+double DCA_Distances[10];
+double DCA_Lots[10];
 
 int OnInit()
 {
@@ -50,7 +49,6 @@ int OnInit()
     DCA_Distances[7] = DCA_Distances_7;
     DCA_Distances[8] = DCA_Distances_8;
     DCA_Distances[9] = DCA_Distances_9;
-    DCA_Distances[10] = DCA_Distances_10;
     Print("EA initialized successfully.");
     return(INIT_SUCCEEDED);
 }
@@ -60,17 +58,10 @@ void OnTick()
     // Calculate ATR (14-period by default)
     double currentATR = iATR(Symbol(), PERIOD_M1, 14, 0);
 
-    // Check if current time is outside of trading hours or if ATR is above threshold
-    // Waiting for ATR down
-    if (currentATR > ATRThreshold) {
-        return;
-    }
-
     int totalOrders = OrdersTotal();
-
     
     if (totalOrders == 0) {
-        OpenBuySellPair();
+        OpenBuySellPair(currentATR);
         return;
     } else {
         double curBuyPrice = Ask;
@@ -84,6 +75,11 @@ void OnTick()
         {
             CloseAllOrders();
             ResetAll();
+            return;
+        }
+
+        // Waiting for ATR down
+        if (currentATR > ATRThreshold) {
             return;
         }
 
@@ -109,12 +105,16 @@ void OnTick()
     }
 }
 
-void OpenBuySellPair()
+void OpenBuySellPair(double currentATR)
 {
+    // Waiting for ATR down
+    if (currentATR > ATRThreshold) {
+        return;
+    }
     // Get current time in HHMM format
     int currentTime = TimeHour(TimeCurrent()) * 100 + TimeMinute(TimeCurrent());
     // Check if current time is outside of trading hours or if ATR is above threshold
-    if (excludeTime && (excludeStartTime <= currentTime || currentTime <= excludeEndTime)) {
+    if (excludeTime && (excludeStartTime <= currentTime && currentTime <= excludeEndTime)) {
         return;
     }
 
