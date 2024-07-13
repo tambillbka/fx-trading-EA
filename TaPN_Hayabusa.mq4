@@ -1,6 +1,6 @@
 // Input parameters
-input double baseLot = 0.05;
-input double targetProfit = 3.0;
+input double baseLot = 0.01;
+input double targetProfit = 1.0;
 
 input bool excludeTime = false;
 input int excludeStartTime = 000;
@@ -61,11 +61,14 @@ void OnTick()
     double currentATR = iATR(Symbol(), PERIOD_M1, 14, 0);
 
     // Check if current time is outside of trading hours or if ATR is above threshold
+    // Waiting for ATR down
     if (currentATR > ATRThreshold) {
         return;
     }
 
     int totalOrders = OrdersTotal();
+
+    
     if (totalOrders == 0) {
         OpenBuySellPair();
         return;
