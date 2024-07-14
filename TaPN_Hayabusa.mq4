@@ -3,12 +3,12 @@ input double baseLot = 0.01;
 input double targetProfit = 1.0;
 
 input bool excludeTime = false;
-input int excludeStartTime = 000;
-input int excludeEndTime = 2300;
+input int excludeStartTime = 600;
+input int excludeEndTime = 2200;
 input double maxAcceptedSpread = 0.3;
 
 // ATR threshold for trading
-input double ATRThreshold = 1.6;
+input double ATRThreshold = 0.68;
 
 // Processing variables
 double firstBuyEntry = 0.0;
@@ -25,9 +25,9 @@ input double DCA_Distances_3 = 1.6;
 input double DCA_Distances_4 = 2.2;
 input double DCA_Distances_5 = 2.8;
 input double DCA_Distances_6 = 3.5;
-input double DCA_Distances_7 = 4.2;
-input double DCA_Distances_8 = 5.0;
-input double DCA_Distances_9 = 6.0;
+input double DCA_Distances_7 = 4.5;
+input double DCA_Distances_8 = 6.0;
+input double DCA_Distances_9 = 10.0;
 double DCA_Distances[10];
 double DCA_Lots[10];
 
