@@ -1,0 +1,51 @@
+EA input:
+- double baseLot = 0.01;
+- double tp = 3.0;
+- double sl = 2.0;
+- int multiplier = 2;
+- double previousCandleDiff = 1.0;
+
+- boolean usePendingOrder = true;
+
+- object HighLowTP {
+    double highTP = 0.0;
+    double lowTP = 0.0
+}
+
+HighLowTP highLowTP = new HighLowTP(0, 0);
+
+onTick() {
+    //TODO: check condition to finding first order;
+    findingFirstOrder();
+}
+
+void findingFirstOrder() {
+    if (isInSeries) return;
+
+    int orderType = getOrderType();
+
+    if(orderType == -1) return;
+
+    
+    
+}
+
+int getOrderType() {
+    //TODO: get previous candle containing: open, close
+    If (Math.abs(open - close) >= previousCandleDiff) {
+        if(close > open) return OP_BUY;
+        if(open > close) return OP_SELL; 
+    }
+    return -1;
+}
+
+void clearHighLowTP() {
+    if (highLowTP != null) {
+        highLowTP.highTP = 0.0;
+        highLowTP.lowTP = 0.0;
+    }
+}
+
+boolean isInSeries() {
+    return highLowTP.highTP != 0 || highLowTP.lowTP != 0
+}
