@@ -47,7 +47,6 @@ void OnTimer()
             return;
         } else {
             Print("Cannot close orders!!!");
-            return;
         }
     }
 }
