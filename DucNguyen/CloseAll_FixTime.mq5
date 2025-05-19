@@ -1,10 +1,9 @@
 #include <Trade/Trade.mqh>
 
-input int Hour   = 19;  // GMT+7 target hour
-input int Min    = 29;  // GMT+7 target minute
-input int Second = 58;  // GMT+7 target second
+input int Hour = 19;     // GMT+7 Hour
+input int Min = 29;      // GMT+7 Minute
+input int Second = 58;   // GMT+7 Second
 
-// Server time
 int serverHour;
 int serverMin;
 int serverSec;
@@ -12,30 +11,29 @@ int serverSec;
 CTrade trade;
 
 //+------------------------------------------------------------------+
-//| Expert initialization                                            |
+//| Expert initialization function                                   |
 //+------------------------------------------------------------------+
 int OnInit()
 {
-    // Clear old timer
-    EventKillTimer();
+    EventKillTimer();  // Clear old timer first
 
     // Convert GMT+7 input time to server time
-    datetime gmt7Time = StrToTime(StringFormat("%02d:%02d:%02d", Hour, Min, Second)) - 7 * 3600;
-    MqlDateTime serverTimeStruct;
-    TimeToStruct(gmt7Time, serverTimeStruct);
+    datetime gmt7Time = StringToTime(StringFormat("%02d:%02d:%02d", Hour, Min, Second)) - 7 * 3600;
+    MqlDateTime serverStruct;
+    TimeToStruct(gmt7Time, serverStruct);
 
-    serverHour = serverTimeStruct.hour;
-    serverMin  = serverTimeStruct.min;
-    serverSec  = serverTimeStruct.sec;
+    serverHour = serverStruct.hour;
+    serverMin = serverStruct.min;
+    serverSec = serverStruct.sec;
 
-    Print("Execute time (Server): ", serverHour, ":", serverMin, ":", serverSec);
+    Print("Target Execution Time (Server): ", serverHour, ":", serverMin, ":", serverSec);
 
-    EventSetTimer(1);  // Check every second
+    EventSetTimer(1);  // Run OnTimer() every second
     return INIT_SUCCEEDED;
 }
 
 //+------------------------------------------------------------------+
-//| Expert deinitialization                                          |
+//| Expert deinitialization function                                 |
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
@@ -44,7 +42,7 @@ void OnDeinit(const int reason)
 }
 
 //+------------------------------------------------------------------+
-//| Timer event                                                      |
+//| Timer event function                                             |
 //+------------------------------------------------------------------+
 void OnTimer()
 {
@@ -53,58 +51,57 @@ void OnTimer()
     TimeToStruct(now, nowStruct);
 
     int currentHour = nowStruct.hour;
-    int currentMin  = nowStruct.min;
-    int currentSec  = nowStruct.sec;
+    int currentMin = nowStruct.min;
+    int currentSec = nowStruct.sec;
+
+    Print("Timer tick at ", TimeToString(now, TIME_SECONDS));
 
     if (currentHour == serverHour && currentMin >= serverMin && currentSec >= serverSec)
     {
         if (CloseAllOrders())
         {
-            Print("Closed all open positions.");
+            Print("All positions closed at ", TimeToString(now, TIME_SECONDS));
             EventKillTimer();
-            return;
         }
         else
         {
-            Print("No positions were closed or failed to close.");
+            Print("No positions closed or failed to close.");
         }
     }
 }
 
 //+------------------------------------------------------------------+
-//| Close all positions for current symbol                           |
+//| Close all positions on the current symbol                        |
 //+------------------------------------------------------------------+
 bool CloseAllOrders()
 {
-    bool anyClosed = false;
+    bool success = false;
+    string symbol = Symbol();
+    int total = PositionsTotal();
 
-    int totalPositions = PositionsTotal();
-
-    for (int i = totalPositions - 1; i >= 0; i--)
+    for (int i = total - 1; i >= 0; i--)
     {
-        if (!PositionGetTicket(i))
+        if (!PositionSelectByIndex(i))
             continue;
 
-        ulong ticket = PositionGetTicket(i);
-
-        if (!PositionSelectByTicket(ticket))
+        if (PositionGetString(POSITION_SYMBOL) != symbol)
             continue;
 
-        string symbol = PositionGetString(POSITION_SYMBOL);
+        ulong ticket = PositionGetInteger(POSITION_TICKET);
+        double volume = PositionGetDouble(POSITION_VOLUME);
 
-        if (symbol != _Symbol)
-            continue;
+        Print("Attempting to close position: ", ticket, ", Volume: ", volume);
 
-        if (trade.PositionClose(symbol))
+        if (trade.PositionClose(ticket))
         {
             Print("Closed position: ", ticket);
-            anyClosed = true;
+            success = true;
         }
         else
         {
-            Print("Failed to close position: ", ticket, " Error: ", trade.ResultRetcode());
+            Print("Failed to close position: ", ticket, ". Error: ", trade.ResultRetcode(), " - ", trade.ResultRetcodeDescription());
         }
     }
 
-    return anyClosed;
+    return success;
 }
