@@ -79,29 +79,22 @@ bool CloseAllOrders()
     string symbol = Symbol();
     int total = PositionsTotal();
 
-    for (int i = total - 1; i >= 0; i--)
-    {
-        if (!PositionSelectByIndex(i))
-            continue;
+    int totalOrders = PositionsTotal();
 
-        if (PositionGetString(POSITION_SYMBOL) != symbol)
-            continue;
+    if (totalOrders > 0) {
+        for (int i = totalOrders - 1; i >= 0; i--) {
+            ulong positionTicket = PositionGetTicket(i);
 
-        ulong ticket = PositionGetInteger(POSITION_TICKET);
-        double volume = PositionGetDouble(POSITION_VOLUME);
-
-        Print("Attempting to close position: ", ticket, ", Volume: ", volume);
-
-        if (trade.PositionClose(ticket))
-        {
-            Print("Closed position: ", ticket);
-            success = true;
-        }
-        else
-        {
-            Print("Failed to close position: ", ticket, ". Error: ", trade.ResultRetcode(), " - ", trade.ResultRetcodeDescription());
+            if (PositionSelectByTicket(positionTicket)) {
+                if (trade.PositionClose(positionTicket)) {
+                    Print("Position closed successfully: Ticket ", positionTicket);
+                    success = true;
+                } else {
+                    Print("Failed to close position: Ticket ", positionTicket, " Error: ", GetLastError());
+                    return false;
+                }
+            }
         }
     }
-
     return success;
 }
