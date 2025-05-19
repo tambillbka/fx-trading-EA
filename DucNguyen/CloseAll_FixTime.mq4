@@ -40,7 +40,7 @@ void OnTimer()
     int currentSec = currentStruct.sec;
 
     // Check if current time matches the specified time
-    if (currentHour == serverHour && currentMin == serverMin && currentSec >= serverSec)
+    if (currentHour == serverHour && currentMin >= serverMin && currentSec >= serverSec)
     {
         if (CloseOrders()) {
             Print("Close all opening orders!!!");
