@@ -44,6 +44,7 @@ void OnTimer()
     {
         if (CloseOrders()) {
             Print("Close all opening orders!!!");
+            EventKillTimer();
             return;
         } else {
             Print("Cannot close orders!!!");
